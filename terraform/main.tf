@@ -145,8 +145,6 @@ resource "aws_instance" "ansible_controller" {
 
 # Node Server
 resource "aws_instance" "node_server" {
-  count = 2
-
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
 
@@ -159,7 +157,7 @@ resource "aws_instance" "node_server" {
   key_name = var.kritesh_key_pair
 
   tags = {
-    Name = "kritesh-node-server-${count.index + 1}"
+    Name = "kritesh-node-server"
   }
 }
 
@@ -168,18 +166,23 @@ output "jenkins_public_ip" {
   value = aws_instance.jenkins_server.public_ip
 }
 
+output "deploy_public_ip" {
+  value = aws_instance.deployment_server
+}
+
 output "ansible_public_ip" {
   value = aws_instance.ansible_controller.public_ip
 }
 
 output "node_server_public_ips" {
-  value = aws_instance.node_server[*].public_ip
+  value = aws_instance.node_server.public_ip
 }
 
 output "instance_ids" {
   value = {
-    jenkins = aws_instance.jenkins_server.id
-    ansible = aws_instance.ansible_controller.id
-    node    = aws_instance.node_server[*].id
+    jenkins    = aws_instance.jenkins_server.id
+    deployment = aws_instance.deployment_server.id
+    ansible    = aws_instance.ansible_controller.id
+    node       = aws_instance.node_server.id
   }
 }
