@@ -1,0 +1,20 @@
+---
+- name: Setup Ansible in EC2 as Master Controller
+  hosts: ansible-master-controller
+  become: true
+
+  tasks:
+    # Update system packages
+    - name: Update apt package cache
+      apt:
+        update_cache: true
+
+    - name: Upgrade system packages
+      apt:
+        upgrade: dist
+
+    # Install Ansible
+    - name: Install Ansible
+      apt:
+        name: ansible
+        state: present

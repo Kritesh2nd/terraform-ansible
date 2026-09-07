@@ -1,0 +1,48 @@
+---
+- name: Setup Jenkins EC2 server
+  hosts: jenkins
+  become: true
+
+  tasks:
+    # Update system packages
+    - name: Update yum packages
+      dnf:
+        name: "*"
+        state: latest
+
+    # Install Nginx
+    - name: Install Nginx
+      dnf:
+        name: nginx
+        state: present
+
+    - name: Start and enable Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: true
+
+    # Install Docker
+    - name: Install Docker
+      dnf:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    # Add ec2-user to Docker group
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: true
+
+    # Install Docker Compose
+    - name: Install Docker Compose plugin
+      dnf:
+        name: docker-compose-plugin
+        state: present

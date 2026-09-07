@@ -1,0 +1,27 @@
+Outputs:
+
+ansible_public_ip = "44.211.169.196"
+jenkins_public_ip = "3.84.23.29"
+node_server_public_ips = [
+  "3.86.232.108",
+  "3.85.171.87",
+]
+
+
+ansible-playbook -i inventory.ini playbook.yml
+
+ansible ansible-master-controller -i inventory.ini -m shell -a "ansible --version"
+
+
+-------------------------------------------------------------------------------------
+2. Stop all 4
+
+aws ec2 stop-instances \
+  --instance-ids \
+  i-00063db7ce8436a33 \
+  i-0d8faa5c47037df38 \
+  i-0bc7e5c7ec68815ac \
+  i-09f7d20d2009357ba
+
+
+-------------------------------------------------------------------------------------
