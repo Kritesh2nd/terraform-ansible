@@ -33,7 +33,7 @@ ansible node -i inventory.ini -b -m shell -a 'java -version'
 ==========================================================================================================================
 2. Stop all 4
 
-aws ec2 stop-instances \
+aws ec2 start-instances \
   --instance-ids \
   i-00b0e98a5d17a21fd \
   i-010fe23fc17a35358 \

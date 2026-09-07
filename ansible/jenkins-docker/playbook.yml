@@ -78,10 +78,61 @@
         update_cache: true
         cache_valid_time: 3600
 
-    - name: Install Java
+    - name: Install required packages
       ansible.builtin.apt:
-        name: openjdk-21-jre
+        name:
+          - openjdk-21-jre
+          - ca-certificates
+          - curl
         state: present
+
+    - name: Create Docker keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+
+    - name: Update apt after adding Docker repository
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install Docker and Docker Compose
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Start and enable Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    # Jenkins needs permission to use Docker
+    - name: Add Jenkins user to Docker group
+      ansible.builtin.user:
+        name: jenkins
+        groups: docker
+        append: true
 
     - name: Create Jenkins keyring directory
       ansible.builtin.file:
@@ -115,6 +166,11 @@
         name: jenkins
         state: started
         enabled: true
+
+    - name: Restart Jenkins to apply Docker group membership
+      ansible.builtin.service:
+        name: jenkins
+        state: restarted
 
 - name: Setup Node Server
   hosts: node
