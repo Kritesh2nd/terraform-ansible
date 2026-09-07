@@ -1,62 +1,150 @@
 ---
-- name: Setup Deploye Server
-  hosts: deploy-server
+- name: Setup Deploy Server
+  hosts: deploy
   become: true
 
   tasks:
     # Update system packages
     - name: Update apt package cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
-
-    - name: Upgrade system packages
-      apt:
-        upgrade: dist
+        cache_valid_time: 3600
 
     # Install Nginx
     - name: Install Nginx
-      apt:
-        name: ansible
+      ansible.builtin.apt:
+        name: nginx
         state: present
 
+    # Install Docker dependencies
+    - name: Install Docker dependencies
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+
+    # Add Docker GPG key
+    - name: Create Docker keyring directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    # Add Docker repository
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    # Install Docker + Compose
+    - name: Install Docker Engine and Docker Compose
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    # Start Docker
+    - name: Ensure Docker is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    # Add Ubuntu user to Docker group
+    - name: Add ubuntu user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    # Ensure Nginx is running
+    - name: Ensure Nginx is running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
 ---
-- name: Setup Jenkins
+- name: Setup Jenkins Server
   hosts: jenkins
   become: true
 
   tasks:
-    # Update system packages
     - name: Update apt package cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
+        cache_valid_time: 3600
 
     - name: Upgrade system packages
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
 
-    # Install Jenkins
+    - name: Install Java
+      ansible.builtin.apt:
+        name: openjdk-21-jre
+        state: present
+
+    - name: Add Jenkins repository key
+      ansible.builtin.get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+        dest: /etc/apt/keyrings/jenkins-keyring.asc
+        mode: "0644"
+
+    - name: Add Jenkins repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        state: present
+        filename: jenkins
+
+    - name: Update apt cache after adding Jenkins repository
+      ansible.builtin.apt:
+        update_cache: true
+
     - name: Install Jenkins
-      apt:
+      ansible.builtin.apt:
         name: jenkins
         state: present
 
+    - name: Ensure Jenkins is running
+      ansible.builtin.service:
+        name: jenkins
+        state: started
+        enabled: true
+
 ---
 - name: Setup Node Server
-  hosts: node-server
+  hosts: node
   become: true
 
   tasks:
-    # Update system packages
     - name: Update apt package cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
+        cache_valid_time: 3600
 
     - name: Upgrade system packages
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
 
-    # Install java
-    - name: Install jdk-26
-      apt:
-        name: ansible
+    - name: Install Java
+      ansible.builtin.apt:
+        name: openjdk-21-jdk
+        state: present
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
         state: present
