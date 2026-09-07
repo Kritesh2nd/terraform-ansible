@@ -9,14 +9,28 @@ instance_ids = {
 jenkins_public_ip = "34.230.71.126"
 node_server_public_ips = "3.84.164.199"
 
--------------------------------------------------------------------------------------
+==========================================================================================================================
 
 ansible-playbook -i inventory.ini playbook.yml
 
 ansible ansible-master-controller -i inventory.ini -m shell -a "ansible --version"
 
+==========================================================================================================================
 
+testing if insatled or not
 -------------------------------------------------------------------------------------
+1. Check Nginx + Docker + Compose on deploy server
+
+ansible deploy -i inventory.ini -b -m shell -a 'nginx -v; docker --version; docker compose version; systemctl is-enabled nginx docker; systemctl is-active nginx docker'
+-------------------------------------------------------------------------------------
+2. Check Jenkins + Java
+
+ansible jenkins -i inventory.ini -b -m shell -a 'java -version; jenkins --version; systemctl is-enabled jenkins; systemctl is-active jenkins'
+-------------------------------------------------------------------------------------
+3. Check Java on Node server
+
+ansible node -i inventory.ini -b -m shell -a 'java -version'
+==========================================================================================================================
 2. Stop all 4
 
 aws ec2 stop-instances \
@@ -26,5 +40,4 @@ aws ec2 stop-instances \
   i-08807a630de414713 \
   i-0115f607d294c6c68
 
-
--------------------------------------------------------------------------------------
+==========================================================================================================================
