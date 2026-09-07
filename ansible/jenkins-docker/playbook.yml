@@ -1,48 +1,62 @@
 ---
-- name: Setup Jenkins EC2 server
+- name: Setup Deploye Server
+  hosts: deploy-server
+  become: true
+
+  tasks:
+    # Update system packages
+    - name: Update apt package cache
+      apt:
+        update_cache: true
+
+    - name: Upgrade system packages
+      apt:
+        upgrade: dist
+
+    # Install Nginx
+    - name: Install Nginx
+      apt:
+        name: ansible
+        state: present
+
+---
+- name: Setup Jenkins
   hosts: jenkins
   become: true
 
   tasks:
     # Update system packages
-    - name: Update yum packages
-      dnf:
-        name: "*"
-        state: latest
+    - name: Update apt package cache
+      apt:
+        update_cache: true
 
-    # Install Nginx
-    - name: Install Nginx
-      dnf:
-        name: nginx
+    - name: Upgrade system packages
+      apt:
+        upgrade: dist
+
+    # Install Jenkins
+    - name: Install Jenkins
+      apt:
+        name: jenkins
         state: present
 
-    - name: Start and enable Nginx
-      systemd:
-        name: nginx
-        state: started
-        enabled: true
+---
+- name: Setup Node Server
+  hosts: node-server
+  become: true
 
-    # Install Docker
-    - name: Install Docker
-      dnf:
-        name: docker
-        state: present
+  tasks:
+    # Update system packages
+    - name: Update apt package cache
+      apt:
+        update_cache: true
 
-    - name: Start and enable Docker
-      systemd:
-        name: docker
-        state: started
-        enabled: true
+    - name: Upgrade system packages
+      apt:
+        upgrade: dist
 
-    # Add ec2-user to Docker group
-    - name: Add ec2-user to docker group
-      user:
-        name: ec2-user
-        groups: docker
-        append: true
-
-    # Install Docker Compose
-    - name: Install Docker Compose plugin
-      dnf:
-        name: docker-compose-plugin
+    # Install java
+    - name: Install jdk-26
+      apt:
+        name: ansible
         state: present

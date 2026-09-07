@@ -1,0 +1,30 @@
+ansible_public_ip = "100.59.44.155"
+deploy_public_ip = "54.173.227.82"
+instance_ids = {
+  "ansible" = "i-00b0e98a5d17a21fd"
+  "deployment" = "i-010fe23fc17a35358"
+  "jenkins" = "i-08807a630de414713"
+  "node" = "i-0115f607d294c6c68"
+}
+jenkins_public_ip = "34.230.71.126"
+node_server_public_ips = "3.84.164.199"
+
+-------------------------------------------------------------------------------------
+
+ansible-playbook -i inventory.ini playbook.yml
+
+ansible ansible-master-controller -i inventory.ini -m shell -a "ansible --version"
+
+
+-------------------------------------------------------------------------------------
+2. Stop all 4
+
+aws ec2 stop-instances \
+  --instance-ids \
+  i-00b0e98a5d17a21fd \
+  i-010fe23fc17a35358 \
+  i-08807a630de414713 \
+  i-0115f607d294c6c68
+
+
+-------------------------------------------------------------------------------------
