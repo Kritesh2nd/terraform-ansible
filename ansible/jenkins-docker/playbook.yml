@@ -4,19 +4,16 @@
   become: true
 
   tasks:
-    # Update system packages
     - name: Update apt package cache
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
 
-    # Install Nginx
     - name: Install Nginx
       ansible.builtin.apt:
         name: nginx
         state: present
 
-    # Install Docker dependencies
     - name: Install Docker dependencies
       ansible.builtin.apt:
         name:
@@ -24,7 +21,6 @@
           - curl
         state: present
 
-    # Add Docker GPG key
     - name: Create Docker keyring directory
       ansible.builtin.file:
         path: /etc/apt/keyrings
@@ -37,15 +33,13 @@
         dest: /etc/apt/keyrings/docker.asc
         mode: "0644"
 
-    # Add Docker repository
     - name: Add Docker repository
       ansible.builtin.apt_repository:
         repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
         filename: docker
 
-    # Install Docker + Compose
-    - name: Install Docker Engine and Docker Compose
+    - name: Install Docker and Docker Compose
       ansible.builtin.apt:
         name:
           - docker-ce
@@ -56,28 +50,24 @@
         state: present
         update_cache: true
 
-    # Start Docker
-    - name: Ensure Docker is running
+    - name: Start Docker
       ansible.builtin.service:
         name: docker
         state: started
         enabled: true
 
-    # Add Ubuntu user to Docker group
     - name: Add ubuntu user to docker group
       ansible.builtin.user:
         name: ubuntu
         groups: docker
         append: true
 
-    # Ensure Nginx is running
-    - name: Ensure Nginx is running
+    - name: Start Nginx
       ansible.builtin.service:
         name: nginx
         state: started
         enabled: true
 
----
 - name: Setup Jenkins Server
   hosts: jenkins
   become: true
@@ -88,16 +78,18 @@
         update_cache: true
         cache_valid_time: 3600
 
-    - name: Upgrade system packages
-      ansible.builtin.apt:
-        upgrade: dist
-
     - name: Install Java
       ansible.builtin.apt:
         name: openjdk-21-jre
         state: present
 
-    - name: Add Jenkins repository key
+    - name: Create Jenkins keyring directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Add Jenkins GPG key
       ansible.builtin.get_url:
         url: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
         dest: /etc/apt/keyrings/jenkins-keyring.asc
@@ -109,7 +101,7 @@
         state: present
         filename: jenkins
 
-    - name: Update apt cache after adding Jenkins repository
+    - name: Update apt after adding Jenkins repository
       ansible.builtin.apt:
         update_cache: true
 
@@ -118,13 +110,12 @@
         name: jenkins
         state: present
 
-    - name: Ensure Jenkins is running
+    - name: Start Jenkins
       ansible.builtin.service:
         name: jenkins
         state: started
         enabled: true
 
----
 - name: Setup Node Server
   hosts: node
   become: true
@@ -142,9 +133,4 @@
     - name: Install Java
       ansible.builtin.apt:
         name: openjdk-21-jdk
-        state: present
-
-    - name: Install Node.js
-      ansible.builtin.apt:
-        name: nodejs
         state: present
